@@ -37,4 +37,9 @@ class Cafe {
 		val (coffees, charges) = purchases.unzip
 		(coffees, charge.reduce((c1, c2) => c1.combine(c2)))
 	}
+	
+	// 合并同一张卡的费用
+	def coalesce(charges: List[Charge]): List[Charge] = {
+		charges.groupBy(_.cc).values.map(_.reduce(_ combine _ )).toList
+	}
 }
