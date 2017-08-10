@@ -66,7 +66,9 @@ object hof {
         println(formatResult("factorial", 5, factorial))
         println(formatResult("fibonacci", 5, fib))
         
-        println(isSorted(Array(1, 9, 5, 7), (x: Int, y: Int) => x < y))
+        println(isSorted(Array(1, 9, 5, 7), 
+                    // 匿名函数、字面量函数
+                    (x: Int, y: Int) => x < y))
         println(isSorted(Array(1, 3, 5, 7), (x: Int, y: Int) => x < y))
     }
 }
