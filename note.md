@@ -1,4 +1,6 @@
-    
+
+- [fpinscala](https://github.com/fpinscala/fpinscala)
+
 - [纯函数](https://zh.wikipedia.org/wiki/%E7%BA%AF%E5%87%BD%E6%95%B0)
 
     > - 此函数在相同的输入值时，需产生相同的输出。函数的输出和输入值以外的其他隐藏信息或状态无关，也和由I/O设备产生的外部输出无关。
@@ -7,3 +9,8 @@
 - [副作用](https://zh.wikipedia.org/wiki/%E5%87%BD%E6%95%B0%E5%89%AF%E4%BD%9C%E7%94%A8)
 
     > 纯函数内部有隐式（Implicit）的数据流，这种情况叫做副作用（Side Effect）。如 I/O 操作，读取外部变量等
+
+- [协变、逆变、上界、下界](http://fineqtbull.iteye.com/blog/477994)
+
+- 对于不可变的 List 进行操作会产生新的 List，但不会进行内存复制，它们在内存中共享相同的数据，只是简单的引用原始列表
+- [模式匹配](http://blog.csdn.net/bluishglc/article/details/51056230)
