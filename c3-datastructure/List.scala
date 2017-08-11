@@ -54,6 +54,9 @@ object List {
         }
         
     // 删除前 n 个满足条件的元素
+    // 调用时，匿名函数中的参数需要使用类型标注
+    //      val xs: List[Int] = List(1,2,3,4)
+    //      val ex = dropWhile(xs, (x: Int) => x < 3)
     def dropWhile[A](l: List[A], f: A => Boolean): List[A] =
         l match {
             // pattern guard 在 case 中使用 if 进行条件限制
@@ -61,6 +64,17 @@ object List {
             case _ => l
         }
         
+    // currying 定义；最大化利用类型推导 
+    // 调用时匿名函数中的参数不需使用类型标注
+    //      val xs: List[Int] = List(1,2,3,4)
+    //      val ex = dropWhileC(xs)(x => x < 3)
+    // scala 根据参数组里的类信息从左往右传递，因此不需要类型标注
+    def dropWhileC[A](l: List[A])(f: A => Boolean): List[A] = 
+        l match {
+            case Cons(h, t) if f(h) => dropWhileC(t)(f)
+            case _ => l
+        }
+
     // 替换 head
     def setHead[A](l: List[A], e: A): List[A] = 
         l match {
