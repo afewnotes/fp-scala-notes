@@ -23,7 +23,7 @@ object List {
     // 总计
     def sum(ints: List[Int]): Int = ints match { // 模式匹配
         case Nil => 0
-        case Cons(x, xs) => x + sum(xs) // 头+尾部合计
+        case Cons(x, xs) => x + sum(xs) // 头+尾合计
     }
     
     // 乘积
@@ -32,6 +32,31 @@ object List {
         case Cons(0.0, _) => 0.0
         case Cons(x, xs) => x * product(xs)
     }
+    
+    // 对 sum 和 product 进行泛化
+    // TODO 是否可以在入参为 0.0 时立即停止递归并返回 0.0
+    def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B = 
+        as match {
+            case Nil => z
+            case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+        }
+        
+    def sum2(ns: List[Int]) = 
+        foldRight(ns, 0)((x,y) => x + y)
+    
+    def product2(ns: List[Double]) =
+        foldRight(ns, 1.0)(_ * _)  // (x, y) => x * y 的简写
+        
+    def length[A](as: List[A]): Int =
+        foldRight(as, 0)((_, acc) => acc + 1)
+        
+    // 尾递归实现
+    @annotation.tailrec
+    def foldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B =
+        as match {
+            case Nil => z
+            case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
+        }
     
     // 可变参数
     def apply[A](as: A*): List[A] = 
