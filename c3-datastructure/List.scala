@@ -57,6 +57,16 @@ object List {
             case Nil => z
             case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
         }
+        
+    def sum3(ns: List[Int]) = foldLeft(ns, 0)(_ + _)
+    
+    def product3(ns: List[Double]) = foldLeft(ns, 1.0)(_ * _)
+    
+    // List(1,2,3) -> List(3,2,1)
+    def reverse[A](l: List[A]): List[A] = foldLeft(l, List[A]())((t,h) => Cons(h, t))
+    
+    // def foldRightViaFoldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B =
+        // foldLeft(as, (b: B) => b)((t,h) => )
     
     // 可变参数
     def apply[A](as: A*): List[A] = 
