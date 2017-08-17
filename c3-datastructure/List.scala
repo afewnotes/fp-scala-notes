@@ -65,8 +65,11 @@ object List {
     // List(1,2,3) -> List(3,2,1)
     def reverse[A](l: List[A]): List[A] = foldLeft(l, List[A]())((t,h) => Cons(h, t))
     
-    // def foldRightViaFoldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B =
-        // foldLeft(as, (b: B) => b)((t,h) => )
+    //
+    // https://stackoverflow.com/a/38881334
+    // 推算、简写
+    def foldRightViaFoldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B =
+        foldLeft(l, (b:B) => b)((g,a) => b => g(f(a,b)))(z)
     
     // 可变参数
     def apply[A](as: A*): List[A] = 
