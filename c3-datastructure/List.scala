@@ -70,6 +70,24 @@ object List {
     // 推算、简写
     def foldRightViaFoldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B =
         foldLeft(l, (b:B) => b)((g,a) => b => g(f(a,b)))(z)
+        
+    // foldLeftViaFoldRight 类似
+    
+    // appendViaFoldRight   
+    def append[A](l: List[A], r: List[A]): List[A] =
+        foldRight(l, r)(Cons(_, _))
+        
+    // 将列表中的列表拼接成单个列表
+    def concat[A](l: List[List[A]]): List[A] =
+        foldRight(l, Nil:List[A])(append)
+        
+    // 为列表的每一个元素加 1， 返回一个新列表；纯函数
+    def addOne(l: List[Int]): List[Int] =
+        foldRight(l, Nil:List[Int])((h, t) => Cons(h + 1, t))
+        
+    
+    def doubleToString(l: List[Double]): List[String] =
+        foldRight(l, Nil:List[String])((h, t) => Cons(h.toString, t))
     
     // 可变参数
     def apply[A](as: A*): List[A] = 
