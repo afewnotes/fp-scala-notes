@@ -85,9 +85,56 @@ object List {
     def addOne(l: List[Int]): List[Int] =
         foldRight(l, Nil:List[Int])((h, t) => Cons(h + 1, t))
         
-    
+    // 3.17
     def doubleToString(l: List[Double]): List[String] =
         foldRight(l, Nil:List[String])((h, t) => Cons(h.toString, t))
+        
+    // 3.18 
+    // 非栈安全
+    def map[A, B](as: List[A])(f: A => B): List[B] = 
+        foldRight(as, Nil:List[B])((h, t) => Cons(f(h), t)
+    
+    def map2[A,B](as: List[A])(f: A => B): List[B] =
+        foldRightViaFoldLeft(as, Nil:List[B])((h, t) => Cons(f(h), t))
+        
+    // 内部使用可变列表实现
+    def map3[A,B](as: List[A])(f: A => B): List[B] = {
+        val buf = new collection.mutable.ListBuffer[B]
+        def go(l: List[A]) =
+            l match {
+                case Nil => ()
+                case Cons(h, t) => buf += f(h); go(t)
+            }
+        go(as)
+        
+        // 可变参数与List https://stackoverflow.com/questions/6051302/what-does-colon-underscore-star-do-in-scala
+        List(buf.toList: _*)
+    }
+    
+    // 3.19 实现过滤； 与 map 类似
+    def filter[A](as: List[A])(f: A => Boolean): List[A] =
+        foldRight(as, Nil:List[A])((h,t) => if(h) Cons(h, t)) else t
+        
+    def filter[A](as: List[A])(f: A => Boolean): List[A] =
+        foldRightViaFoldLeft(as, Nil:List[A])((h,t) => if(h) Cons(h,t)) else t
+    
+    def filter[A](as: List[A])(f: A => Boolean): List[A] = {
+        val buf = new collection.mutable.ListBuffer[A]
+        def go(l: List[A]) = 
+            l match {
+                case Nil => ()
+                case Cons(h, t) => if (f(h)) buf += h; go(t)
+            }
+        
+        go(as)
+        List(buf.toList: _*)
+    }
+    
+    // 3.20
+    def flatMap[A,B](as: List[A])(f: A => List[B]): List[B] =
+        concat(map(as)(f))
+        // foldRight 方式实现
+        // foldRight()
     
     // 可变参数
     def apply[A](as: A*): List[A] = 
