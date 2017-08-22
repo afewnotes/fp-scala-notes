@@ -34,6 +34,7 @@ object List {
     }
     
     // 对 sum 和 product 进行泛化
+    // List(1,2,3) -> f(1,f(2,f(3,z)))
     // TODO 是否可以在入参为 0.0 时立即停止递归并返回 0.0
     def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B = 
         as match {
@@ -51,6 +52,7 @@ object List {
         foldRight(as, 0)((_, acc) => acc + 1)
         
     // 尾递归实现
+    // List(1,2,3) -> f(f(f(z,1),2),3)
     @annotation.tailrec
     def foldLeft[A,B](as: List[A], z: B)(f: (B, A) => B): B =
         as match {
@@ -115,10 +117,10 @@ object List {
     def filter[A](as: List[A])(f: A => Boolean): List[A] =
         foldRight(as, Nil:List[A])((h,t) => if(h) Cons(h, t)) else t
         
-    def filter[A](as: List[A])(f: A => Boolean): List[A] =
+    def filter2[A](as: List[A])(f: A => Boolean): List[A] =
         foldRightViaFoldLeft(as, Nil:List[A])((h,t) => if(h) Cons(h,t)) else t
     
-    def filter[A](as: List[A])(f: A => Boolean): List[A] = {
+    def filter3[A](as: List[A])(f: A => Boolean): List[A] = {
         val buf = new collection.mutable.ListBuffer[A]
         def go(l: List[A]) = 
             l match {
@@ -130,11 +132,30 @@ object List {
         List(buf.toList: _*)
     }
     
-    // 3.20
+    // 3.20 List 中的每个元素变为 List，然后合并为单个 List
     def flatMap[A,B](as: List[A])(f: A => List[B]): List[B] =
         concat(map(as)(f))
         // foldRight 方式实现
-        // foldRight()
+        // foldRight(as, Nil:List[B])((h,t) => f(h) ::: t)
+        // https://stackoverflow.com/questions/6559996/scala-list-concatenation-vs
+    
+    // 3.21 通过 flatMap 实现 filter
+    def filterViaFlatMap[A](as: List[A])(f: A => Boolean): List[A] = 
+        flatMap(as)(a => if (f(a)) List(a) else Nil) // 将符合条件的元素变为单个元素的列表，然后拼接
+        
+    // 3.22 (List(1,2,3), List(4,5,6)) -> List(5,7,9)
+    def addList(l: List[Int], r: List[Int]): List[Int] = as match {
+        case (Nil, _) => Nil
+        case (_, Nil) => Nil
+        case (Cons(h1, t1), Cons(h2, t2)) => Cons(h1 + h2, addList(t1, t2)) // 递归处理每一组元素
+    }
+    
+    // 3.23 泛化add
+    def zipWith[A,B,C](a: List[A], b: List[B])(f: (A,B) => C): List[C] = (a,b) match {
+        case (Nil, _) => Nil
+        case (_, Nil) => Nil
+        case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1,h2), zipWith(t1,t2)(f))
+    }
     
     // 可变参数
     def apply[A](as: A*): List[A] = 
