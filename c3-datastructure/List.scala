@@ -147,7 +147,7 @@ object List {
     def addList(l: List[Int], r: List[Int]): List[Int] = as match {
         case (Nil, _) => Nil
         case (_, Nil) => Nil
-        case (Cons(h1, t1), Cons(h2, t2)) => Cons(h1 + h2, addList(t1, t2)) // 递归处理每一组元素
+        case (Cons(h1, t1), Cons(h2, t2)) => Cons(h1 + h2, addList(t1, t2)) // 递归处理每一对元素 （h1+h2）
     }
     
     // 3.23 泛化add
@@ -155,6 +155,20 @@ object List {
         case (Nil, _) => Nil
         case (_, Nil) => Nil
         case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1,h2), zipWith(t1,t2)(f))
+    }
+    
+    // 3.24 一个 List 是否包含另一个 List
+    def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = sup match {
+        case Nil => sub == Nil
+        case _ if(startWith(sup, sub)) => true
+        case Cons(h,t) => hasSubsequence(t, sub) // 结合 startWith 和尾递归 将问题转化； 上一次的 tail 作为本次的 sup，依次判断是否满足 startWith，找到即返回 true
+        // List(1,2,3,4) 包含 List(1,2), List(2,3)...
+    }
+    
+    def startWith[A](l: List[A], prefix: List[A]): Boolean = (l, prefix) match {
+        case (_, Nil) => true  // 第二个列表为空，说明匹配成功
+        case (Cons(h,t), Cons(h2,t2)) => if (h == h2) => startWith(t, t2) // 尾递归比较每对元素
+        case _ => false  // 其他情况，匹配失败
     }
     
     // 可变参数
