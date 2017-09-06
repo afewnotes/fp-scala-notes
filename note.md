@@ -14,6 +14,7 @@
 
 - 对于不可变的 List 进行操作会产生新的 List，但不会进行内存复制，它们在内存中共享相同的数据，只是简单的引用原始列表
 - [模式匹配](http://blog.csdn.net/bluishglc/article/details/51056230)
+- call by name, call by value
 
 ##### 异常
 - 破坏了引用透明并引入了上下文依赖
