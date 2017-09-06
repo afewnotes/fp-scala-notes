@@ -10,7 +10,7 @@
 
     > 纯函数内部有隐式（Implicit）的数据流，这种情况叫做副作用（Side Effect）。如 I/O 操作，读取外部变量等
 
-- [协变、逆变、上界、下界](http://fineqtbull.iteye.com/blog/477994)
+- [协变、逆变](http://hongjiang.info/scala-covariance-and-contravariance/)、[上界、下界](http://hongjiang.info/scala-upper-bounds-and-lower-bounds/)
 
 - 对于不可变的 List 进行操作会产生新的 List，但不会进行内存复制，它们在内存中共享相同的数据，只是简单的引用原始列表
 - [模式匹配](http://blog.csdn.net/bluishglc/article/details/51056230)
