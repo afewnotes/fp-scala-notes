@@ -35,6 +35,7 @@ object sample {
         else xs.sum / xs.length
         
     // Option：结果不一定总被定义
+    // 类型安全 Option[A] 与 A 是不同类型
     sealed trait Option[+A]
     // 对应已被定义的情况
     case class Some[+A](get: A) extends Option[A]

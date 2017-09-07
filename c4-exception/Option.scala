@@ -33,3 +33,24 @@ sealed trait Option[+A] {
         case _ => None
     }
 }
+
+object Option {
+    
+    def mean(xs: Seq[Double]): Option[Double] = 
+        if (xs.isEmpty) => None
+        else Some(xs.sum / xs.length)
+    
+    // 方差  avg((x-avg(xs))^2)
+    def variance(xs: Seq[Double]): Option[Double] = 
+        mean(xs) flatMap (m => mean(xs.map(x => math.power(x - m, 2))))
+    
+    // 通用模式，调用 map/flatMap/filter 来转换 Option， 最后用 getOrElse 处理错误
+    val dept: String = 
+        lookupByName("Joe")
+        .map(_.dept)
+        .filter(_ != "Accounting")
+        .getOrElse("Default Dept")
+        
+    // 抛出异常的常见做法
+    o.getOrElse(throw new Exception("Fail"))
+}
