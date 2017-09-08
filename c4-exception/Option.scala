@@ -53,4 +53,27 @@ object Option {
         
     // 抛出异常的常见做法
     o.getOrElse(throw new Exception("Fail"))
+    
+//
+    def insuranceRateQuote(age: Int, numberOfSpeedingTickets: Int): Double
+    
+    def parseInsuranceRateQuote(age: String, 
+        numberOfSpeedingTickets: String): Option[Double] = {
+        val optAge: Option[Int] = Try(age.toInt)
+        val optTickets: Option[Int] = Try(numberOfSpeedingTickets.toInt)
+        insuranceRateQuote(optAge, optTickets)
+    }
+    
+    //           ↓ 非严格求值 / 惰性求值
+    def Try[A](a: => A): Option[A] = 
+        try Some(a)
+        catch {
+            case e: Exception => None // 丢弃异常信息
+        }
+        
+    // exercise 4.3
+    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
+        a flatMap (aa => (b map (bb => f(aa, bb))))
+    }
+        
 }
