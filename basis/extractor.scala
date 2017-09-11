@@ -1,4 +1,6 @@
-
+//
+// https://windor.gitbooks.io/beginners-guide-to-scala
+//
 object extractor {
     
     def main(args: Array[String]) = {
