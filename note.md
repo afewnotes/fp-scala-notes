@@ -1,4 +1,6 @@
 
+- [beginners guide to scala - 中文](https://windor.gitbooks.io/beginners-guide-to-scala)
+
 - [fpinscala](https://github.com/fpinscala/fpinscala)
 
 - [纯函数](https://zh.wikipedia.org/wiki/%E7%BA%AF%E5%87%BD%E6%95%B0)
