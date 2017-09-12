@@ -1,8 +1,9 @@
 
-- [beginners guide to scala - 中文](https://windor.gitbooks.io/beginners-guide-to-scala)
-- [scala school - Twitter](https://twitter.github.io/scala_school/zh_cn/index.html)
-- [effective scala - Twitter](http://twitter.github.io/effectivescala/index-cn.html)
-- [fpinscala](https://github.com/fpinscala/fpinscala)
+> 资料
+> - [beginners guide to scala - 中文](https://windor.gitbooks.io/beginners-guide-to-scala)
+> - [scala school - Twitter](https://twitter.github.io/scala_school/zh_cn/index.html)
+> - [effective scala - Twitter](http://twitter.github.io/effectivescala/index-cn.html)
+> - [fpinscala](https://github.com/fpinscala/fpinscala)
 
 - [纯函数](https://zh.wikipedia.org/wiki/%E7%BA%AF%E5%87%BD%E6%95%B0)
 
