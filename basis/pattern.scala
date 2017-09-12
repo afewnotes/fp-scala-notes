@@ -39,10 +39,14 @@ object pattern {
         ("a", 100) :: ("b", 99) :: ("c", 101) :: Nil
         
     def hallOfFame = for {
-        result <- results()
-        (name, score) = result
+        (name, score) <- results()
         if (score > 100) 
     } yield name
     
-    
+    val lists = List(1,2,3) :: List.empty :: List(5,3) :: Nil
+    for {
+        // @ 操作符，将匹配到的模式绑定到变量
+        list @ head :: _ <- lists
+    } yield list.size
+    // > List[Int] = List(3, 2)
 }
