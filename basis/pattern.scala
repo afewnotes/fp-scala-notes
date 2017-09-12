@@ -49,4 +49,30 @@ object pattern {
         list @ head :: _ <- lists
     } yield list.size
     // > List[Int] = List(3, 2)
+    
+    // 匿名函数
+    val wordFrequencies = ("a", 19) :: ("b", 30) :: ("c", 29) :: 
+        ("d", 23) :: ("e", 9) :: ("f", 11) :: Nil
+    // def wordsWithoutOutliers(wordFrequencies: Seq[(String, Int)]): Seq[String] = 
+    //     wordFrequencies.filter(w => w._2 > 20 && w._1 < 30).map(_._1)
+    
+    // 模式匹配形式的匿名函数
+    def wordsWithoutOutliers(wordFrequencies: Seq[(String, Int)]): Seq[String] = 
+        wordFrequencies.filter {
+            case (_, f) => f > 20 && f < 30
+        } map {
+            case (w, _) => w
+        }
+        
+    wordsWithoutOutliers(wordFrequencies)
+    
+    // 偏函数 PartialFunction
+    val pf:PartialFunction[(String, Int), String] = {
+        case (w, f) if f > 20 && f < 30 => w
+    }
+    
+    // wordFrequencies.map(pf)  // 运行时报错 MatchError，并不是所有输入值都满足条件/都有定义/都能匹配上
+    wordFrequencies.collect(pf) // 正常执行；collect 接收一个偏函数，并将函数应用到每个元素上
+    
+    
 }
