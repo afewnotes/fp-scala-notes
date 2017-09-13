@@ -65,8 +65,26 @@ object Try {
     def getURLContent(url: String): Try[Iterator[String]] = 
         for {
             url <- parseURL(url)
-            connection <- Try(url.openConnection())
-            is <- Try(connection.getInputStream)
-            source = Source.fromInputStream(is)
+            // connection <- Try(url.openConnection())
+            // is <- Try(connection.getInputStream)
+            // source = Source.fromInputStream(is)
+            source = Source.fromURL(url)
+            // 关闭流
         } yield source.getLines()
+        
+    // 模式匹配
+    getURLContent("http://google.com") match {
+        case Success(lines) => lines.foreach(println)
+        case Failure(ex) => println(s"problem : ${ex.getMessage}")
+    }
+    
+    // 故障恢复 recover
+    // 接收一个偏函数，返回另一个 Try
+    val content = getURLContent("error") recover {
+        case e: Exception1 => Iterator("e1")
+        case e: Exception2 => Iterator("e2")
+        case _ => Iterator("other")
+    }
+    // 可在 content 上安全的使用 get 方法
+    content.get.foreach(println)
 }
