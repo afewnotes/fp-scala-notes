@@ -97,4 +97,36 @@ object Either {
         getContent(new URL("http://twitter.com")).fold(Iterator(_), _.getLines())
     val moreContentViaFold: Iterator[String]
         getContent(new URL("http://google.com")).fold(Iterator(_), _.getLines())
+        
+    // 用途
+    // 一、错误处理
+    // 相对于 Try 可以更具体的处理错误（Try 只能用 Throwable）
+    import scala.util.control.Exception.catching
+    def handling[Ex <: Throwable, T](exType: Class[Ex])(block: => T): Either[Ex, T] = 
+        // 编译期产生的类型总数 Throwable，因此要使用 asInstanceOf 转换
+        catching(exType).either(block).asInstanceOf[Either[Ex, T]]
+        
+    // 将异常放在 Either 里
+    import java.net.MalformedURLException
+    def parseURL(url: String): Either[MalformedURLException, URL] = 
+        handling(classOf[MalformedURLException])(new URL(url))
+        
+    // 自定义错误类型，使用 Left 封装
+    case class Customer(age: Int)
+    class Cigarettes
+    case class UnderAgeFailure(age: Int, required: Int)
+    def buyCigarettes(customer: Customer): Either[UnderAgeFailure, Cigarettes] = 
+        if (customer.age < 16) Left(UnderAgeFailure(customer.age, 16))
+        else Right(new Cigarettes)
+    // 避免使用 Either 处理意料之外的异常，使用 Try 处理更好
+    
+    // 二、处理集合
+    // 依次处理集合元素时，某个元素出现意料之外的结果时，程序不应直接引发异常，使得剩余元素无法处理
+    // 黑名单 URL, 
+    type Citizen = String
+    case class BlackListedResource(url: URL, visitors: Set[Citizen])
+    val blacklist = List(
+            BlackListedResource(new URL("http://google.com"), Set("a", "b")),
+            BlackListedResource(new URL("http://twitter.com"), Set.empty)
+        )
 }
