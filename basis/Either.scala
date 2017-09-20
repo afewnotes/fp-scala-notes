@@ -120,13 +120,21 @@ object Either {
         else Right(new Cigarettes)
     // 避免使用 Either 处理意料之外的异常，使用 Try 处理更好
     
-    // 二、处理集合
+    // 二、处理集合；非常适合
     // 依次处理集合元素时，某个元素出现意料之外的结果时，程序不应直接引发异常，使得剩余元素无法处理
-    // 黑名单 URL, 
+    // 黑名单 URL, 用户列表
     type Citizen = String
     case class BlackListedResource(url: URL, visitors: Set[Citizen])
     val blacklist = List(
             BlackListedResource(new URL("http://google.com"), Set("a", "b")),
-            BlackListedResource(new URL("http://twitter.com"), Set.empty)
+            BlackListedResource(new URL("http://twitter.com"), Set.empty),
+            BlackListedResource(new URL("http://facebook.com"), Set("d", "f"))
         )
+    // 检查用户列表为空的 URL
+    val checkedBlacklist: List[Either[URL, Set[Citizen]]] = 
+        blacklist.map(resource => 
+            if (resource.visitors.isEmpty) Left(resource.url)
+            else Right(resource.visitors))
+    val suspiciousResources = checkedBlacklist.flatMap(_.left.toOption)
+    val problemCitizens = checkedBlacklist.flatMap(_.right.toOption).flatten.toSet
 }
