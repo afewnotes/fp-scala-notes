@@ -1,7 +1,7 @@
 
 
     // scala.concurrent.Future[T]
-    // - 类型容器，代表一种返回值类型为 T 的计算
+    // - 容器类型，代表一种返回值类型为 T 的计算
     // - 计算完成时，可能包含错误
     // - 只能写一次，完成后不能再改变
     // - 提供读取计算值的接口；写入计算值的任务交给 Promise
@@ -111,5 +111,51 @@ object FutureSample {
     grind("baked beans").onComplete {
         case Success(ground) => println(s"got my $ground")
         case Failure(ex) => println("exception")
+    }
+    
+    // map 所有容器类型都有 map 和 flatMap 操作
+    // Future 失败将不会调用 map
+    val temperatureOk: Future[Boolean] = heatWater(Water(25)) map {water => 
+        println("future")
+        (80 to 85) contains (water.temperature)
+    }
+    
+    // flatMap
+    def temperatureOk(water: Water): Future[Boolean] = future {
+        (80 to 85) contains (water.temperature)
+    }
+    val nestedFuture: Future[Future[Boolean]] = heatWater(Water(25)) map {
+        water => temperatureOk(water)
+    }
+    val flatFuture: Future[Boolean] = heatWater(Water(25)) flatMap {
+        water => temperatureOk(water)
+    }
+    
+    // for - flatMap 嵌套调用的语法糖
+    val acceptable: Future[Boolean] = for {
+        heatedWater <- heatWater(Water(25))
+        okay <- temperatureOk(heatedWater)
+    } yield okay
+    
+    // Future 实际上是嵌套的
+    def prepareCappuccinoSequentially(): Future[Cappuccino] = 
+        for {
+            ground <- grind("beans")
+            water <- heatWater(Water(25))
+            foam <- frothMilk("milk")
+            espresso <- brew(ground, water)
+        } yield combine(espresso, foam)
+        
+    // 先实例化独立的 Future，在执行 for
+    def prepareCappuccino(): Future[Cappuccino] = {
+        val groundCoffee = grind("beans")
+        val heatedWater = heatWater(Water(20))
+        val frothedMilk = frothMilk("milk")
+        for {
+            ground <- groundCoffee
+            water <- heatedWater
+            foam <- frothedMilk
+            espresso <- brew(ground, water)
+        } yield combine(espresso, foam)
     }
 }
