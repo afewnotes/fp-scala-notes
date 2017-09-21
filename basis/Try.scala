@@ -1,5 +1,5 @@
 
-object Try {
+object TrySample {
     
     case class Customer(age: Int)
     class Cigarettes

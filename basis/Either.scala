@@ -1,5 +1,5 @@
 
-object Either {
+object EitherSample {
     
     // Either[A,B] 
     //  要么包含类型 A 的实例 - Left 实例

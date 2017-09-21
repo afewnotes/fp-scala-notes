@@ -1,5 +1,5 @@
 
-object option {
+object OptionSample {
     
     // 创建
     val a: Option[String] = Some("a")
