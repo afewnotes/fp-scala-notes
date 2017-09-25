@@ -8,7 +8,7 @@ object TrySample {
     def buyCigarettes(customer: Customer): Cigarettes = 
         if (customer.age < 18) 
             throw UnderAgeException(s"customer must be older than 18 but was ${customer.age}")
-        else new Cigarettes
+        else new Cigarettes 
         
     // try/catch 是表达式，会返回一个值，下面代码会返回异常消息
     val youngCustomer = Customer(15)

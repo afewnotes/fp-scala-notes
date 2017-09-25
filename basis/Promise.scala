@@ -76,6 +76,6 @@ object PromiseSample {
     val executorService = Executors.newFiexedThreadPool(5)
     val executionContext = ExecutionContext.fromExecutorService(executorService)
     
-    // 3. 长时间运行的计算，同样放入 Future 中
+    // 3. 长时间运行的计算，同样放入 Future 中 
     
 }
