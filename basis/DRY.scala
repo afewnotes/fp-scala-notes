@@ -55,5 +55,22 @@ object DRY {
         n =>
             sizeConstraint(_ <= n)
             
+    // 函数组合
+    // 为 sentByOneOf, notSentByAnyOf 结束一个通用的高阶函数
+    // 取补
+    def complement[A](predicate: A => Boolean) = (a: A) => !predicate(a)
+    // 组合
+    // f.compose(g) 先调用 g，然后应用 f 到 g 的返回结果上
+    // f.andThen(g) 先调用 f, 然后应用 g 到 f 的返回结果上
     
+    // 重写 notSentByAnyOf
+    val notSentByAnyOf = sentByOneOf andThen (g => complement(g))
+    val notSentByAnyOf = sendByOneOf andThen (complement(_))
+    
+    // 谓词组合
+    // 多个过滤器
+    def any[A](predicates: (A => Boolean)*): A => Boolean =
+        a => predicates.exists(pred => pred(a))
+    def none[A](predicates: (A => Boolean)*) = complement(any(predicates: _*))
+    def every[A](predicates: (A => Boolean)*) = none(predicates.view.map(complement(_)): _*)
 }
