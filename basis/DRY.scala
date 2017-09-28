@@ -69,8 +69,40 @@ object DRY {
     
     // 谓词组合
     // 多个过滤器
+    // any 返回的新函数检查是否有一个谓词对输入 a 成真
     def any[A](predicates: (A => Boolean)*): A => Boolean =
         a => predicates.exists(pred => pred(a))
+    // none 返回的是 any 返回函数的补，只要有一个成真的谓词， none 的条件就无法满足
     def none[A](predicates: (A => Boolean)*) = complement(any(predicates: _*))
+    // view 会产生一个延迟集合，后面的 map 操作只会在调用时触发
+    // https://stackoverflow.com/questions/6799648/in-scala-what-does-view-do
+    // every 利用 none 和 any 来判定是否每个谓词的补对于输入 a 都不成真
     def every[A](predicates: (A => Boolean)*) = none(predicates.view.map(complement(_)): _*)
+    
+    // 地址为 john@example / 长度小于100 / 大于1000
+    val filter: EmailFilter = every(
+        notSentByAnyOf(Set("john@example.com")),
+        minimumSize(100),
+        maximumSize(1000)
+        )
+        
+    // 流水线组合
+    // 场景：对用户发送的邮件做一些处理  Email => Email
+    val addMissingSubject = (email: Email) =>
+        if (email.subject.isEmpty) email.copy(subject = "Empty subject")
+        else email
+    val checkSpelling = (email: Email) =>
+        email.copy(text = email.text.replaceAll("your", "you're"))
+    val removeInappropriateLanguage = (email: Email) =>
+        email.copy(text = email.text.replaceAll("dynamic typing", "**Censored**"))
+    val addAdvertismentToFooter = (email: Email) =>
+        email.copy(text = email.text + "\nThis mail sent via Super Awesome Free Mail")
+    
+    // 通过 addThen 调用 或 Function 伴生对象上的 chain 方法
+    val pipeline = Function.chain(Seq(
+            addMissingSubject,
+            checkSpelling,
+            removeInappropriateLanguage,
+            addAdvertismentToFooter
+        ))
 }
