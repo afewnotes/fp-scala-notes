@@ -112,4 +112,6 @@ object DRY {
     // 类比偏函数和 返回 Option[A] 的标准函数；相互转化
     // 偏函数调用 lift 得到一个普通函数，返回 Option
     // 一个返回 Option 的普通函数 f，调用 Function.unlift(f) 得到一个偏函数
+    
+    
 }
