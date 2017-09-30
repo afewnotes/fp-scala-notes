@@ -47,5 +47,58 @@ object Currying {
     // 转变为函数对象
     def sizeConstraintFn: IntPairPred => Int => Email => Boolean = sizeConstraint _
     
+    // 简化重写
+    val minSize: Int => Email => Boolean = sizeConstraint(ge)
+    val maxSize: Int => Email => Boolean = sizeConstraint(le)
+    // 被留空的参数没必要使用占位符
     
+    // 创建 EmailFilter 谓词
+    val min20: Email => Boolean = minSize(20)
+    val max20: Email => Boolean = maxSize(20)
+    
+    // 柯里化的函数上直接绑定多个参数
+    val min20: Email => Boolean = sizeConstraintFn(ge)(20)
+    val max20: Email => Boolean = sizeConstraintFn(le)(20)
+    
+    // 函数柯里化
+    // 通过调用 curried 方法得到
+    val sum: (Int, Int) => Int = _ + _
+    val sumCurried: Int => Int => Int = sum.curried
+    
+    // 使用 Function.uncurried 进行反向操作
+    
+    
+    // 函数化依赖注入
+    case class User(name: String)
+    trait EmailRepository {
+        def getMails(user: User, unread: Boolean): Seq[Email]
+    }
+    
+    trait FilterRepository {
+        def getEmailFilter(user: User): EmailFilter
+    }
+    
+    trait MailboxService {
+        def getNewMails(emailRepo: EmailRepository)(filterRepo: FilterRepository)(user: User) =
+            emailRepo.getMails(user, true).filter(filterRepo.getEmailFilter(user))
+        
+        val newMails: User => Seq[Email]
+    }
+    
+    // 扩展 MailboxService
+    object MockEmailRepository extends EmailRepository {
+        def getMails(user: User, unread: Boolean): Seq[Email] = Nil
+    }
+    
+    object MockFilterRepository extends FilterRepository {
+        def getEmailFilter(user: User): EmailFilter = _ => true
+    }
+    
+    object MailboxServiceWithMockDeps extends MailboxService {
+        val newMails: (User) => Seq[Email] = 
+            getNewMails(MockEmailRepository)(MockFilterRepository) _
+    }
+    
+    // 调用，无需指定要使用的存储库
+    MailboxServiceWithMockDeps.newMails(User("John")) 
 }
