@@ -56,6 +56,11 @@ object Option {
     
 //
     def insuranceRateQuote(age: Int, numberOfSpeedingTickets: Int): Double
+    // 对函数进行提升
+    // math.abs         Double         => Double
+    // lift(math.abs)   Option[Double] => Option[Double]
+    // lift(f)返回一个函数，函数对 None 映射为 None， 对 Some 应用 f (即被提升的函数)
+    // f 不需要感知 Option 的类型
     
     def parseInsuranceRateQuote(age: String, 
         numberOfSpeedingTickets: String): Option[Double] = {
@@ -75,5 +80,15 @@ object Option {
     def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
         a flatMap (aa => (b map (bb => f(aa, bb))))
     }
+    
+    // map2 实现 parseInsuranceRateQuote 
+    def parseInsuranceRateQuote (age: String,
+        numberOfSpeedingTickets: String): Option[Double] = {
+        val optAge: Option[Int] = Try { age.toInt } // 等价于：Try(age.toInt) 接收单个参数的函数，在调用时可使用大括号代替小括号
+        val optTickets: Option[Int] = Try { numberOfSpeedingTickets.toInt }
+        map2(optAge, optTickets)(insuranceRateQuote) // 任何一个解析失败，立即返回 None
+    }
         
+    // exercise 4.4
+    def sequence[A](a: List[Option[A]]): Option[List[A]]
 }
