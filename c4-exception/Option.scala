@@ -90,5 +90,13 @@ object Option {
     }
         
     // exercise 4.4
-    def sequence[A](a: List[Option[A]]): Option[List[A]]
+    // List[Option[A]] -> Option[List[A]]
+    // 递归实现 head:tail
+    def sequence[A](a: List[Option[A]]): Option[List[A]] = 
+        a match {
+            case Nil => Some(Nil)
+            case h::t => h flatMap (hh => sequence(t) map (hh :: _))
+        }
+        
+    
 }
