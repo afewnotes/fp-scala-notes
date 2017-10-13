@@ -81,4 +81,46 @@ object PathDep {
     def createFanFiction(f: Franchise)(lovestruck: f.Character, objectOfDesire: f.Character) =
         (lovestruck, objectOfDesire)
         
+    //依赖方法类型通常和抽象类型成员一起使用
+    // 场景：键值存储
+    object AwesomeDB {
+        // 抽象类型，不关心到底是什么形式
+        abstract class Key(name: String) {
+            type value
+        }
+    }
+    
+    import AwesomeDB.key
+    class AwesomeDB {
+        import collection.mutable.Map
+        val data = Map.empty[Key, Any]
+        def get(key: Key): Option[key.Value] = data.get(key).asInstanceOf[Option[key.value]]
+        // 依赖方法类型，value 的类型必须与 key 对应
+        def set(key: Key)(value: key.Value): Unit = data.update(key, value)
+    }
+    
+    // 定义具体的键
+    trait IntValued extends Key {
+        type Value = Int
+    }
+    trait StringValued extends Key {
+        type Value = String
+    }
+    object Keys {
+        val foo = new Key("foo") with IntValued
+        val bar = new Key("bar") with StringValued
+    }
+    
+    // 使用
+    val dataStore = new AwesomeDB
+    dataStore.set(Keys.foo)(23)
+    val i: Option[Int] = dataStore.get(Keys.foo)
+    dataStore.set(Keys.foo)("23") // 无法编译
+        
+    // 实践
+    // 配合 cake pattern 一起使用
+    // 将运行期才知道的信息编码到类型里
+    //  异构列表、自然数的类型级别表示、
+    
+    // https://github.com/milessabin/shapeless
 }
