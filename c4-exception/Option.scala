@@ -98,5 +98,13 @@ object Option {
             case h::t => h flatMap (hh => sequence(t) map (hh :: _))
         }
         
-    
+    // foldRight 和 map2 实现
+    def sequence_1[A](a: List[Option[A]]): Option[List[A]] = 
+        a.foldRight[Option[List[A]]](Some(Nil))((x,y) => map2(x, y)(_ :: _))
+        
+    def parseInts(a: List[String]): Option[List[Int]] = 
+        sequence(a map (i => Try(i.toInt)))
+        // 效率低，遍历了两次列表，1.对每个字符串转换为 Option[Int]，2.对 Option[Int] 组合成 Option[List[Int]
+        
+    def traverse[A,B](a: List[A])(f: A => Opiton[B]): Option[List[B]]
 }
