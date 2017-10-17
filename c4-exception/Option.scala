@@ -106,5 +106,23 @@ object Option {
         sequence(a map (i => Try(i.toInt)))
         // 效率低，遍历了两次列表，1.对每个字符串转换为 Option[Int]，2.对 Option[Int] 组合成 Option[List[Int]
         
-    def traverse[A,B](a: List[A])(f: A => Opiton[B]): Option[List[B]]
+    // exercise 4.5
+    // List[A] -> Option[List[B]]
+    def traverse[A,B](a: List[A])(f: A => Opiton[B]): Option[List[B]] = 
+        a match {
+            case Nil => Some(Nil)
+            case h::t => map2(f(h), traverse(t)(f))(_::_)
+        }
+        
+    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A,B) => C): Option[C] = 
+        a flatMap (aa => 
+            b map (bb => 
+                f(aa, bb)))
+    
+    // 使用 for 推导，自动展开一些列的 flatMap, map 调用
+    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A,B) => C): Option[C] = 
+        for {
+            aa <- a
+            bb <- b
+        } yield f(aa, bb)
 }
