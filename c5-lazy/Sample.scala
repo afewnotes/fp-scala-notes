@@ -12,7 +12,7 @@ object Sample {
         () => println("b")
     )
     // () => A 接收 0 个参数，返回 A 类型; Function0[A] 类型的语法别名
-    // ；thunk
+    // ；thunk: 一个表达式的未求值形式
     // 在函数中对应的参数称为 传名参数 by name
     
     // 更好的语法  省略括号，直接使用 => A
