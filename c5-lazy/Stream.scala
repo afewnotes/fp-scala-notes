@@ -38,9 +38,45 @@ sealed trait Stream[+A] {
     def toListTailRec: List[A] = {
         @annotation.tailrec
         def go(s: Stream[A], acc: List[A]): List[A] = s match {
-            case cons(h, t) => go(t(), h() :: acc)
+            case Cons(h, t) => go(t(), h() :: acc)
             case _ => acc
         }
         go(this, List()).reverse
     }
+    
+    // 改进尾递归最后的 reverse
+    // 使用 ListBuffer，一次迭代得出结果
+    def toListFast: List[A] = {
+        val buf = new collection.mutable.ListBuffer[A]
+        @annotation.tailrec
+        def go(s: Stream[A]): List[A] = s match {
+            case Cons(h, t) => 
+                buf += h()
+                go(t())
+            case _ => buf.toList
+        }
+        go(this)
+    }
+    
+    // exercise 5.2  take drop
+    def take(n: Int): Stream[A] = this match {
+        case Cons(h, t) if n > 1 => cons(h(), t().take(n-1)) // 获取head，递归处理tail n n-1...
+        case Cons(h, _) if n == 1 => cons(h(), empty)
+        case _ => empty
+    }
+    
+    @annotation.tailrec
+    def drop(n: Int): Stream[A] = this match {
+        case Cons(h, t) if n > 0 => t().drop(n - 1) // 丢弃head，尾递归处理tail
+        case _ => this
+    }
+    
+    // exercise 5.3 takeWhile
+    def takeWhile(p: A => Boolean): Stream[A] = this match {
+        // case Cons(h, t) if (p(h())) => cons(h(), t().takeWhile(p))
+        case Cons(h, t) if p(h()) => cons(h(), t() takeWhile p) // without . notation
+        case _ => empty
+    }
+    
+    
 }
