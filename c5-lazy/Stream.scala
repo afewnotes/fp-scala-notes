@@ -78,5 +78,35 @@ sealed trait Stream[+A] {
         case _ => empty
     }
     
+    // 函数的描述和求值 分离
+    def exists(p: A => Boolean): Boolean = this match {
+        // || 非严格求值
+        case Cons(h, t) => p(h()) || t().exists(p)  // 显式递归
+        case _ => false
+    }
+                                    // 传名参数
+    def foldRight[B](z: => B)(f: (A, => B) => B): B =
+        this match {
+            case Cons(h, t) => f(h(), t().foldRight(z)(f))
+            case _ => z
+        }
     
+    // foldRight 实现 exists
+    def existsViaFoldRight(p: A => Boolean): Boolean = 
+        foldRight(false)((a, b) => p(a) || b)
+        
+    // exercise 5.4
+    def forAll(p: A => Boolean): Boolean = 
+        // this match {
+        //     case Cons(h, t) => p(h()) && t().forAll(p)
+        //     case _ => true
+        // }
+        foldRight(true)((a, b) => p(a) && b)
+    
+    // exercise 5.5
+    def takeWhileViaFoldRight(p: A => Boolean): Stream[A] =
+        foldRight(empty[A])((h, t) =>
+            if (p(h)) cons(h, t)
+            else empty
+        )
 }
