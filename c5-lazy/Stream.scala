@@ -134,10 +134,40 @@ sealed trait Stream[+A] {
     val ones: Stream[Int] = Stream.cons(1, ones)
     
     // exercise 5.8
+    // 会产生多余的重复对象
     def constant[A](a: A): Stream[A] = Stream.cons(a, constant(a))
     
+    // https://stackoverflow.com/questions/46900605/functional-programming-in-scala-infinite-streams
     def constant[A](a: A): Stream[A] = {
+        // 始终只有一个对象的多个引用，效率更高，更节省空间
         lazy val tail: Stream[A] = Cons(() => a, () => tail)
         tail
     }
+    
+    // exercise 5.9
+    def from(n: Int): Stream[Int] =
+        Stream.cons(n, from(n + 1))
+        
+    // exercise 5.10
+    def fibs = {
+        def go(a: Int, b: Int): Stream[Int] =
+            cons(a, go(b, a+b))
+        go(0, 1)
+    }
+    
+    // exercise 5.11
+    // 共递归 corecursive
+    def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = 
+        f(z) match {
+            case Some((h, s)) => cons(h, unfold(s)(f))
+            case None => empty
+        }
+        
+    // 递归：   由不断地对更小范围的输入参数进行递归调用而结束 terminate
+    // 共递归： 只要保证生产数据不需要结束；意味着我们总是可以在一个有限的时间段里对更多的结果求值
+    //      有时也被称为 守护递归 guarded recursion
+    
+    // exercise 5.12
+    def fibsViaUnfold = 
+        unfold((0,1)){ case (f0, f1) => Some(f0, (f1, (f0 + f1))) }
 }
