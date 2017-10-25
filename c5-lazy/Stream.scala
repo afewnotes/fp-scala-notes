@@ -170,4 +170,56 @@ sealed trait Stream[+A] {
     // exercise 5.12
     def fibsViaUnfold = 
         unfold((0,1)){ case (f0, f1) => Some(f0, (f1, (f0 + f1))) }
+        
+    def fromViaUnfold(n: Int): Stream[Int] = 
+        unfold(n)(n => Some((n, n + 1)))
+        
+    def constantViaUnfold(n: Int): Stream[Int] = 
+        unfold(n)(n => Some((n,n)))
+        
+    def onesViaUnfold: Stream[Int] = 
+        unfold(1)(_ => Some((1,1)))
+        
+    // exercise 5.13
+    def mapViaUnfold[B](f: A => B): Stream[B] =
+        unfold(this){
+            case Cons(h, t) => Some((f(h()), t()))
+            case _ => None
+        }
+        
+    def takeViaUnfold(n: Int): Stream[A] = 
+        unfold((this, n)){
+            // 通过中转值记录 n 的递减结果
+            // 最后一个值
+            case (Cons(h, t), 1) => Some((h(), (empty, 0)))
+            case (Cons(h, t), n) if n > 1 => Some((h(), (t(), n - 1)))
+            case _ => None
+        }
+        
+    def takeWhileViaUnfold(f: A => Boolean): Stream[A] = 
+        unfold(this) {
+            case Cons(h, t) if f(h()) => Some((h(), t()))
+            case _ => None
+        }
+        
+    // zipWith 两个 Stream 需要同时都有元素才处理
+    def zipWith[B,C](s2: Stream[B])(f: (A,B) => C): Stream[C] =
+        unfold((this, s2)) {
+            case (Cons(h, t), Cons(h2, t2)) =>
+                Some((f(h(), h2()), (t(), t2())))
+            case _ => None
+        }
+        
+    // 只要任一个 Stream 有元素就要处理
+    def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+        zipWithAll(s2)((_,_))
+        
+        
+    def zipWithAll[B,C](s2: Stream[B])(f: (Option[A], Option[B]) => C): Stream[C] = 
+        unfold((this, s2)) {
+            case (Empty, Empty) => None                                 //  ↓ 隐式转换，最终变为一个 Tuple2
+            case (Cons(h, t), Empty) => Some( f(Some(h()), Option.empty[B]) -> (t(), empty[B]) )
+            case (Empty, Cons(h, t)) => Some( f(Option.empty[B], Some(h())) -> (empty[B] -> t()))
+            case (Cons(h1, t1), Cons(h2, t2)) => Some( f(Some(h1()), Some(h2())) -> (t1() -> t2()) )
+        }
 }
