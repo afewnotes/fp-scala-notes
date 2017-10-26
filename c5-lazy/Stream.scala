@@ -231,7 +231,7 @@ sealed trait Stream[+A] {
     
     // exercise 5.15 
     // Stream(1,2,3) 返回 Stream(Stream(1,2,3), Stream(2,3), Stream(3), Stream())
-    def tail: Stream[Stream[A]] = 
+    def tails: Stream[Stream[A]] = 
         unfold(this) {
             case Empty => None
             case s => Some((s, s drop 1))
@@ -240,4 +240,26 @@ sealed trait Stream[+A] {
     def hasSubsequence[A](s: Stream[A]): Boolean =
         tails exists (_ startsWith s)
     
+    // exercise 5.16
+    def scanRight[B](z: B)(f: (A, => B) => B): Stream[B] =
+        foldRight((z, Stream(z)))((a, p0) => {
+            lazy val p1 = p0
+            val b2 = f(a, p0._1)
+            // 返回 Tuple2, 递归展开后为初始值，即 (z, Stream(z))
+            (b2, cons(b2, p1._2))
+        })._2
+        
+    // 使用
+    Stream(1,2,3).scanRight(0)(_ + _).toList
+    // foldRight((0, Stream(0)))((a,p0) => {
+    //  lazy val p1 = p0
+    //  val b2 = a + p0._1
+    //  (b2, cons(b2, p1._2)
+    // }
+    // this match {
+    //  case Cons(h,t) => f( a=h(), p0=t().foldRight((0, Stream(0))))(f)
+    //  case _ => (0, Stream(0))
+    // }
+    // res0: List[Int] = List(6,5,3,0)
+    // 等同于            List(1+2+3,2+3,3+0,0)
 }
