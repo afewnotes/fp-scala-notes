@@ -222,4 +222,22 @@ sealed trait Stream[+A] {
             case (Empty, Cons(h, t)) => Some( f(Option.empty[B], Some(h())) -> (empty[B] -> t()))
             case (Cons(h1, t1), Cons(h2, t2)) => Some( f(Some(h1()), Some(h2())) -> (t1() -> t2()) )
         }
+        
+    // exercise 5.14
+    def startsWith[A](s: Stream[A]): Boolean =
+        zipAll(s).takeWhile(!_._2.isEmpty) forAll {
+            case (h, h2) => h == h2
+        }
+    
+    // exercise 5.15 
+    // Stream(1,2,3) 返回 Stream(Stream(1,2,3), Stream(2,3), Stream(3), Stream())
+    def tail: Stream[Stream[A]] = 
+        unfold(this) {
+            case Empty => None
+            case s => Some((s, s drop 1))
+        } append Stream(empty)
+        
+    def hasSubsequence[A](s: Stream[A]): Boolean =
+        tails exists (_ startsWith s)
+    
 }
