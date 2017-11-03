@@ -94,6 +94,8 @@ object RNG {
     // 返回常量值
     def unit[A](a:A): Rand[A] =
         rng => (a, rng)
+        
+        
     // 转换状态行为的输出而不修改状态本身
     def map[A, B](s: Rand[A])(f: A => B): Rand[B] = 
         rng => {
@@ -105,7 +107,28 @@ object RNG {
     def nonNegativeEven: Read[Int] = 
         map(nonNegativeInt)(i => i - i % 2)
         
-    // exercise 6.2 使用 map 重新实现 double
+    // exercise 6.5 使用 map 重新实现 double
     def doubleViaMap: Rand[Double] = 
         map(nonNegativeInt)(_ / (Int.MaxValue.toDouble + 1))
+        
+    // exercise 6.6 
+    def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = 
+        rng => {
+            val (a, r1) = ra(rng)
+            val (b, r2) = rb(r1)
+            (f(a, b), r2)
+        }
+        
+    def both[A, B](ra: Rand[A], rb: Rand[B]): Rand[(A, B)] = 
+        map2(ra, rb)((_,_))
+        
+    val randIntDouble: Rand[(Int, Double)] = 
+        both(int, double)
+        
+    val randDoubleInt: Rand[(Double, Int)] = 
+        both(double, int)
+        
+    // exercise 6.7
+    def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
+        fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
 }
