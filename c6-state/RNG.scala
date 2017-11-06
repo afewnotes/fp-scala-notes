@@ -128,7 +128,48 @@ object RNG {
     val randDoubleInt: Rand[(Double, Int)] = 
         both(double, int)
         
-    // exercise 6.7
+    // exercise 6.7 sequence
     def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
         fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
+        
+    def nonNegativeLessThan(n: Int): Rand[Int] = 
+        // map(nonNegativeInt){ _ % n } 
+        
+        // 当结果 不合适时 递归，重试生成器
+        // map(nonNegativeInt) { i =>
+        //     val mod = i % n
+        //     if (i + (n - 1) - mod >= 0) mod else nonNegativeLessThan(n)(...)
+        // }
+        
+        // 显示传递，替代 map
+     {   rng =>
+            val (i, rng2) = nonNegativeInt(rng)
+            val mod = i % n
+            if (i + (n - 1) - mod >= 0)
+                (mod, rng2)
+            else nonNegativeLessThan(n)(rng)
+     }
+     
+     // exercise 6.8
+     def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = 
+        rng => {
+            val (a, r1) = f(rng)
+            g(a)(r1)
+        }
+        
+    def nonNegativeLessThanViaFlatMap(n: Int): Rand[Int] = {
+        flatMap(nonNegativeInt) { i =>
+            val mod = i % n
+            if (i + (n - 1) - mod >= 0) unit(mod) else nonNegativeLessThanViaFlatMap(n)
+        }
+    }
+    
+    // exercise 6.9
+    def mapViaFlatMap[A,B](s: Rand[A])(f: A => B): Rand[B] = 
+        flatMap(s)(a => unit(f(a)))
+        
+    def map2ViaFlatMap[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = 
+        flatMap(ra)(a => map2(rb)(b => f(a, b)))
+        
+    def rollDie: Rand[Int] = map(nonNegativeLessThanViaFlatMap(6)(_ + 1))
 }
