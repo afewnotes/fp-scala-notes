@@ -172,4 +172,98 @@ object RNG {
         flatMap(ra)(a => map2(rb)(b => f(a, b)))
         
     def rollDie: Rand[Int] = map(nonNegativeLessThanViaFlatMap(6)(_ + 1))
+    
+    // 通用签名
+    // def map[S,A,B](a: S => (A,S))(f: A => B): S => (B,S)
+    
+    // 将 Rand 抽象， 可以处理任何类型的状态
+    // 携带状态的计算 / 状态行为 / 状态转换
+    type State[S,+A] = S => (A,S)
+    //  或 定义成类
+    // case class State[S, +A](run: S => (A,S))
+    // 将 Rand 定义为 State 的别名
+    // type Rand[A] = State[RNG, A]
+}
+
+case class State[S, +A](run: S => (A, S)) {
+    def map[B](f: A => B): State[S, B] = 
+        flatMap(a => unit(f(a)))
+        
+    def map2[B,C](sub: State[S,B])(f: (A,B) => C): State[S,C] = 
+        flatMap(a => sub.map(b => f(a,b)))
+        
+    def flatMap[B](f: A => State[S,B]): State[S,B] = State(s => {
+        val (a, s1) = run(s)
+        f(a).run(s1)
+    })
+}
+
+object State {
+    type Rand[A] = State[RNG, A]
+    
+    def unit[S, A](a: A): State[S, A] = 
+        State(s => (a, s))
+        
+    def sequence[S,A](sas: List[State[S,A]]): State[S, List[A]] = {
+        def go(s: S, aciton: List[State[S,A]], acc: List[A]): (List[A], S) = 
+            actions match {
+                case Nil => (ac.reverse, s)
+                case h :: t => h.run(s) match { 
+                    case (a, s2) => go(s2, t, a :: acc)
+                }
+            }
+            
+        State((s: S) => go(s, sas, List()))
+    }
+    
+    def sequenceViaFoldRight[S,A](sas: List[S,A]): State[S, List[A]] = 
+        sas.foldRight(unit[S, List[A]](List()))((f, acc) => f.map2(acc)(_ :: _))
+        
+    def sequenceViaFoldLeft[S,A](l: List[State[S,A]]): State[S, List[A]] = 
+        l.reverse.foldLeft(unit[S, List[A]](List()))((acc,f) => f.map2(acc)(_ :: _))
+        
+    val ns: Rand[List[Int]] = 
+        int.flatMap(x =>
+            int.flatMap(y =>
+                ints(x).map(xs =>
+                    xs.map(_ % y))))
+                    
+    val ns: Rand[List[Int]] for {
+        x <- int
+        y <- int
+        xs <- ints(x)
+    } yield xs.map(_ % y)
+    
+    
+    def modify[S](f: S => S): State[S, Unit] = for {
+        s <- get
+        _ <- set(f(s))
+    } yield()
+    
+    def get[S]: State[S,S] = State(s => (s,s))
+    def set[S](s: S): State[S,Unit] = State(_ => ((), s))
+}
+
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Iput
+
+case class Machine(locked: Boolean, candies: Int, coins: Int)
+
+object Candy {
+    def update = (i: Input) => (s: Machine) =>
+        (i,s) match {
+            case (_, Machine(_, 0, _)) => s
+            case (Coin, Machine(false, _, _)) => s
+            case (Turn, Machine(true, _, _)) => s
+            case (Coin, Machine(true, candy, coin)) => 
+                Machine(false, candy, coin + 1)
+            case (Turn, Machine(false, candy, coin)) =>
+                Machine(true, candy - 1, coin)
+        }
+        
+    def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = for {
+        _ <- sequence(inputs map (modify[Machine] _ compose update))
+        s <- get
+    } yield (s.coins, s.candies)
 }
