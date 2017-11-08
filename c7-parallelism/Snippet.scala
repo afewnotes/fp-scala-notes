@@ -22,6 +22,23 @@ object Sample {
             val sumR: Par[Int] = Par.unit(sum(r)) // 并行计算右半部分
             Par.get(sumL) + Par.get(sumR) // 抽取结果求和
         }
+        
+    def sum(ints: IndexedSeq[Int]): Par[Int] = 
+        if (ints.size <= 1) 
+            Par.unit(ints.headOption getOrElse 0)
+        else {
+            val (l,r) = ints.splitAt(ints.length / 2)
+            Par.map2(sum(l), sum(r))(_ + _)
+        }
+        
+    // 显性分流
+    def sum(ints: IndexedSeq[Int]): Par[Int] =
+        if (ints.length <= 1)
+            Par.unit(ints.headOption getOrElse 0)
+        else {
+            val (l, r) = ints.splitAt(ints.length / 2)
+            Par.map2(Par.fork(sum(l)), Par.fork(sum(r)))(_ + _) // fork 将 Par 分配到另一个独立的逻辑线程中运行
+        }
 }
     
 object Par[A] {
@@ -29,6 +46,12 @@ object Par[A] {
     // 接收一个未求值的A，返回结果会在另一个独立的 线程中完成求值
     def unit[A](a: => A): Par[A]
     
+    def lazyUnit[A](a: => A): Par[A] = fork(unit(a))
+    
     // 从并行计算里抽取结果
     def get[A](a: Par[A]): A 
+    
+    def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C]
+    
+    def fork[A](a: => Par[A]): Par[A]
 }
