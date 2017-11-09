@@ -42,16 +42,81 @@ object Sample {
 }
     
 object Par[A] {
+    type Par[A] = ExecutorService => Future[A]
+    
     // 并行化单元
     // 接收一个未求值的A，返回结果会在另一个独立的 线程中完成求值
-    def unit[A](a: => A): Par[A]
+    // def unit[A](a: => A): Par[A]
+    def unit[A](a: A): Par[A] = (es: ExecutorService) => UnitFuture(a)
     
     def lazyUnit[A](a: => A): Par[A] = fork(unit(a))
     
     // 从并行计算里抽取结果
-    def get[A](a: Par[A]): A 
+    // def get[A](a: Par[A]): A 
+    // def run[A](a: Par[A]): A
+    def run[A](s: ExecutorService)(a: Par[A]): Future[A] = a(s)
     
-    def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C]
+    // 通过一个二元函数合并两个并行计算 为 一个新的并行计算
+    def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C] = 
+        (es: ExecutorService) => {
+            val af = a(es)
+            val bf = b(es)
+            UnitFuture(f(af.get, bf.get))
+        }
+        
+    // 支持超时设置
+    // 创建新的 Future，减去两个线程的耗时
+    def map2Timeout[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C] = {
+        (es: ExecutorService) => 
+            val af = a(es)
+            val bf = b(es)
+            
+            new Future[C] {
+                def cancel(evenIfRunning: Boolean): Boolean = true
+                def isCancelled: Boolean = af.isCancelled || bf.isCancelled
+                def isDone: Boolean = af.isDone && bf.isDone
+                def get(): C = f(af.get, bf.get)
+                def get(timeout: Long, unit: TimeUnit): C = {
+                    val start = System.currentTimeMillis
+                    val a = af.get(timeout, unit)
+                    val elapsed = System.currentTimeMillis - start
+                    val remaining = unit.toMillis(timeout) - 
+                    val b = bf.get(remaining, unit)
+                    f(a, b)
+                }
+            }
+    }
     
-    def fork[A](a: => Par[A]): Par[A]
+    // 标记为 在 run 时进行并发求值
+    def fork[A](a: => Par[A]): Par[A] = 
+    // 存在的问题：Callable 会阻塞知道内部执行任务完成，阻塞会导致线程 被占用，并行度降低
+        es => es.submit(new Callable[A] {
+            def call = a(es).get
+        })
+    
+    private case class UnitFuture[A](get: A) extends Future[A] {
+        def isDone = true
+        def get(timeout: Long, units: TimeUnit) = get
+        def isCancelled = false
+        def cancel(evenIfRunning: Boolean): Boolean = false
+    }
+    
+    // 将函数转换为异步计算
+    def asyncF[A,B](f: A => B): A => Par[B] = 
+        a => lazyUnit(f(a))
+}
+
+
+// scala 版 java.util.concurrent.ExecutorService
+
+class ExecutorService {
+    def submit[A](a: Callable[A]): Future[A]
+}
+trait Callable[A] { def call: A }
+trait Future[A] {
+    def get: A
+    def get(timeout: Long, unit: TimeUnit): A
+    def cancel(evenIfRunning: Boolean): Boolean
+    def isDone: Boolean
+    def isCancelled: Boolean
 }
