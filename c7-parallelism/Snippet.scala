@@ -104,6 +104,45 @@ object Par[A] {
     // 将函数转换为异步计算
     def asyncF[A,B](f: A => B): A => Par[B] = 
         a => lazyUnit(f(a))
+        
+    // 排序
+    def sortPar(parList: Par[List[Int]]): Par[List[Int]] = 
+        map2(parList, unit(()))((a, _) => a.sorted)
+        
+    // lift  A => B 提升为 Par[A] => Par[B]
+    def map[A,B](pa: Par[A])(f: A => B): Par[B] =
+        map2(pa, unit(()))((a,_) => f(a))
+        
+    // 改进排序
+    def sortPar(parList: Par[List[Int]]) = map(parList)(_.sorted)
+    
+    // 组合 n 个并行计算
+    def parMap[A,B](ps: List[A])(f: A => B): Par[List[B]] = {
+        val fbs: List[Par[B]] = ps.map(asyncF(f))
+        sequence(fbs)
+    }
+    
+    // exercise List[Par[A]] -> Par[List[B]]
+    def sequence[A](ps: List[Par[A]]): Par[List[A]] = 
+        ps.foldRight[Par[List[A]]](unit(List()))((h,t) => map2(h,t)(_ :: _))
+        
+    // 尾递归
+    def sequenceRight[A](ps: List[Par[A]]): Par[List[A]] = 
+        ps match {
+            case Nil => unit(Nil)
+            case h :: t => map2(h, fork(sequenceRight(t)))(_ :: _)
+        }
+        
+    // 分治
+    def sequenceBalanced[A](ps: IndexedSeq[Par[A]]): Par[IndexedSeq[A]] = fork {
+        if (ps.isEmpty) unit(Vector())
+        else if (ps.length == 1) map(as.head)(a => Vector(a))
+        else {
+            val (l,r) = ps.splitAt(ps.length / 2)
+            map2(sequenceBalanced(l), sequenceBalanced(r))(_ ++ _)
+        }
+    }
+        
 }
 
 
