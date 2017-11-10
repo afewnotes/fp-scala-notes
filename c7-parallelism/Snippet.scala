@@ -143,6 +143,19 @@ object Par[A] {
         }
     }
         
+    // exercise 7.6
+    def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] = {
+        val pars: List[Par[List[A]]]] = 
+            as map (asyncF((a: A) => if (f(a)) List(a) else List()))
+            
+        map(sequence(pars))(_.flattern)
+    }
+    
+    def equal[A](e: ExecutorService)(p: Par[A], p2: Par[A]): Boolean = 
+        p.get(e) == p2.get(e)
+        
+    def delay[A](fa: => Par[A]): Par[A] = 
+        es => fa(es)
 }
 
 
