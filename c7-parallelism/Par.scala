@@ -65,3 +65,15 @@ def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C] =
             p2(es)(b => combiner ! Right(b))
         }
     }
+    
+def choice[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] = 
+    es => 
+        if (run(es)(cond).get) t(es)
+        else f(es)
+    
+// exercise 7.11
+def choiceN[A](n: Par[A])(choices: List[Par[A]]): Par[A] = 
+    es => {
+        val ind = run(es)(n).get 
+        run(es)(choices(ind))
+    }
