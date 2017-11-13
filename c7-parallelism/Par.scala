@@ -77,3 +77,33 @@ def choiceN[A](n: Par[A])(choices: List[Par[A]]): Par[A] =
         val ind = run(es)(n).get 
         run(es)(choices(ind))
     }
+    
+// exercise 7.12
+def choiceMap[K,V](key: Par[K])(choices: Map[K, Par[V]]): Par[V] = 
+    es => {
+        val k = run(es)(key).get
+        run(es)(choices(k))
+    }
+    
+// exercise 7.13
+// choice Boolean -> Par[A]
+// choiceN  Index -> Par[A]
+// choiceMap    key -> Par[V]
+def chooser[A, B](pa: Par[A])(choices: A => Par[B]): Par[B] = 
+    es => {
+        val k = run(es)(pa).get
+        run(es)(choices(k))
+    }
+    
+def choiceViaChooser[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] = 
+    chooser(cond)(if (_) t else f)
+    
+def choiceNViaChooser[A](n: Par[A])(choices: List[Par[A]]): Par[A] = 
+    chooser(n)(choices(_))
+    
+// exercise 7.14
+def join[A](a: Par[[Par[A]]]): Par[A] =
+    es => run(es(run(es)(a).get))
+    
+def flatMap[A,B](a: Par[A])(f: A => Par[B]): Par[B] = 
+    join(map(p)(f))
