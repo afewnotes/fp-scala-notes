@@ -123,3 +123,52 @@ case class Prop(run: (MaxSize,TestCases,RNG) => Result) {
     }
   }
 }
+
+
+case class SGen[+A](g: Int => Gen[A]) {
+    // e. 8.11
+    def apply(n: Int): Gen[A] = g
+    
+    def map[B](f: A => B): SGen[B] = SGen { g(_) map f }
+    
+    def flatMap[B](f: A => SGen[B]): SGen[B] = {
+        val g2: Int => Gen[B] = n => {
+            g(n) flatMap { f(_).g(n) }
+        }
+        
+        SGen(g2)
+    }
+    
+    def **[B](s2: SGen[B]): SGen[(A,B)] = {
+        SGen(n => apply(n) ** s2(n))
+    }
+}
+case class Gen[+A](sample: State[RNG, A]) {
+    // e 8.10
+    def unsize: SGen[A] = SGen(_ => this)
+}
+
+
+def listOf[A](g: Gen[A]): SGen[List[A]] = 
+    SGen(n => g.listOfN(n))
+    
+
+type MaxSize = Int
+case class Prop(run: (MaxSize, TestCases, RNG) => Result)
+
+def forAll[A](g: SGen[A])(f: A => Boolea): Prop = 
+    forAll(g(_))(f)
+    
+def forAll[A](g: Int => Gen[A])(f: A => Boolean): Prop = Prop {
+    (max,n,rng) =>
+        val casesPerSize = (n + max - 1) / max
+        val props: Stream[Prop] = 
+            Stream.from(0).take((n min max) + 1).map(i => forAll(g(i))(f))
+            
+        val prop: Prop = 
+            props.map(p => Prop { (max, _, rn) =>
+                p.run(max, casesPerSize, rng)
+            }).toList.reduce(_ && _)
+            
+        prop.run(max, n, rng)
+}
