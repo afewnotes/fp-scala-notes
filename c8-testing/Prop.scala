@@ -148,7 +148,7 @@ case class Gen[+A](sample: State[RNG, A]) {
     def unsize: SGen[A] = SGen(_ => this)
 }
 
-
+// e 8.12
 def listOf[A](g: Gen[A]): SGen[List[A]] = 
     SGen(n => g.listOfN(n))
     
@@ -171,4 +171,33 @@ def forAll[A](g: Int => Gen[A])(f: A => Boolean): Prop = Prop {
             }).toList.reduce(_ && _)
             
         prop.run(max, n, rng)
+}
+
+def run(p: Prop,
+        maxSize: Int = 100,
+        testCases: Int = 100,
+        rng: RNG = RNG.Simple(System.currentTimeMillis)): Unit = 
+    p.run(maxSize, testCases, rng) match {
+        case Falsified(msg, n) => 
+            println(s"! Falsified after $n passed tests: \n $msg")
+        
+        case Passed => 
+            println(s"+ OK, passed $testCases tests")
+    }
+    
+// e 8.13
+def listOf1[A](g: Gen[A]): SGen[List[A]] = 
+    SGen(n => g.listOfN(n max res0))
+    
+// e 8.14
+val sortedProp = forAll(listOf(smallInt)) { ns =>
+    val nss = ns.sorted
+    // 排序后，前一元素大于后一元素
+    (nss.isEmpty || nss.tail.isEmpty || !nss.zip(nss.tail).exists {
+        case (a,b) => a > b
+    })
+    // 排序后的元素包含所有排序前的元素
+    && !ns.exists(!nss.contains(_))
+    // 排序前不包含的元素，排序后也不包含
+    && !nss.exists(!ns.contains(_))
 }
