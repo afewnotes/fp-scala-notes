@@ -34,6 +34,11 @@ trait Parsers[ParserError, Parser[+_]] {  self => // self 为 trait 实例的引
     case class ParserOPs[A](p: Parser[A]) {
         def |[B >: A](p2: Parser[B]): Parser[B] = self.or(p,p2) // self 消除歧义
         def or[B >: A](p2: => Parser[B]): Parser[B] = self.or(p,p2)
+        def many[A](p: Parser[A]): Parser[List[A]]
+        def map[A,B](a: Parser[A])(f: A => B): Parser[B]
+        def slice[A](p: Parser[A]): Parser[String]
+        def many1[A](p: Parser[A]): Parser[List[A]]
+        def product[A,B](p: Parser[A], p2: Parser[B]): Parser[(A,B)[]]
     }
     
     // 重复字符串处理
@@ -42,5 +47,20 @@ trait Parsers[ParserError, Parser[+_]] {  self => // self 为 trait 实例的引
     // run(listOfN(3, "ab" | "123"))("abab123") == Right("abab123")
     // run(listOfN(3, "ab" | "123"))("123abab") == Right("123abab")
     
+    // val numA: Parser[Int] = char('a').many.map(_.size)
+    // run(numA)("aaa") 结果为 Right(3), run(numA)("b") 为 Right(0)
     
+    object Laws {
+        def equals[A](p1: Parser[A], p2: Parser[A])(in: Gen[String]): Prop = 
+            forAll(in)(s => run(p1)(s) == run(p2)(s))
+            
+        def mapLaw[A](p: Parser[A])(in: Gen[String]): Prop = 
+            equals(p, p.map(a => a))(in)
+    }
+    
+    def charViaString(c: Char): Parser[Char] = 
+        string(c.toString) map (_.charAt(0))
+        
+    def succeed[A](a: A): Parser[A] = string("") map (_ => a)
+    // run(succeed(a))(s) == Right(a)
 }
